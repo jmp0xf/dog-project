@@ -1,0 +1,5 @@
+.python-version
+.ipynb_checkpoints
+*.pyc
+dogImages
+lfw
