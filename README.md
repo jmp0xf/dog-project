@@ -34,21 +34,16 @@ cd cn-deep-learning/dog-project
 5. 安装必要的 Python 依赖包
 
 
-	对于 __Mac/OSX__：
+	对于 __不支持 CUDA 的环境__：
 	
 	```bash
-	conda env create -f requirements/dog-mac.yml
-	source activate dog-project
-	KERAS_BACKEND=tensorflow python -c "from keras import backend"
+	pip install -r requirements/requirements.txt
 	```
 
-	对于 __Windows__：
+	对于 __支持 CUDA 的环境__：
 	
 	```bash
-	conda env create -f requirements/dog-windows.yml
-	activate dog-project
-	set KERAS_BACKEND=tensorflow
-	python -c "from keras import backend"
+	pip install -r requirements/requirements-gpu.txt
 	```
 6. 打开 notebook
 
