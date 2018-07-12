@@ -13372,8 +13372,14 @@ SUVORK5CYII=
 
 <span class="c1">## TODO: 基于human_files_short和dog_files_short</span>
 <span class="c1">## 中的图像测试face_detector的表现</span>
-<span class="nb">print</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">%.1f%%</span><span class="s1"> images in human_files_short have a detected human face.&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">sum</span><span class="p">([</span><span class="n">face_detector</span><span class="p">(</span><span class="n">_</span><span class="p">)</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="n">human_files_short</span><span class="p">])</span><span class="o">*</span><span class="mi">100</span><span class="o">/</span><span class="nb">len</span><span class="p">(</span><span class="n">human_files_short</span><span class="p">)))</span>
-<span class="nb">print</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">%.1f%%</span><span class="s1"> images in dog_files_short have a detected human face.&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">sum</span><span class="p">([</span><span class="n">face_detector</span><span class="p">(</span><span class="n">_</span><span class="p">)</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="n">dog_files_short</span><span class="p">])</span><span class="o">*</span><span class="mi">100</span><span class="o">/</span><span class="nb">len</span><span class="p">(</span><span class="n">dog_files_short</span><span class="p">)))</span>
+<span class="k">def</span> <span class="nf">get_detector_percentage</span><span class="p">(</span><span class="n">detector</span><span class="p">,</span> <span class="n">data_files</span><span class="p">):</span>
+    <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">([</span><span class="n">detector</span><span class="p">(</span><span class="n">f</span><span class="p">)</span> <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">data_files</span><span class="p">])</span><span class="o">*</span><span class="mi">100</span>
+
+<span class="k">def</span> <span class="nf">show_detector_performance</span><span class="p">(</span><span class="n">detector</span><span class="p">,</span> <span class="n">target</span><span class="p">):</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">%.1f%%</span><span class="s1"> images in human_files_short have a detected </span><span class="si">%s</span><span class="s1">.&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">get_detector_percentage</span><span class="p">(</span><span class="n">detector</span><span class="p">,</span> <span class="n">human_files_short</span><span class="p">),</span> <span class="n">target</span><span class="p">))</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">%.1f%%</span><span class="s1"> images in dog_files_short have a detected </span><span class="si">%s</span><span class="s1">.&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">get_detector_percentage</span><span class="p">(</span><span class="n">detector</span><span class="p">,</span> <span class="n">dog_files_short</span><span class="p">),</span> <span class="n">target</span><span class="p">))</span>
+
+<span class="n">show_detector_performance</span><span class="p">(</span><span class="n">face_detector</span><span class="p">,</span> <span class="s2">&quot;human face&quot;</span><span class="p">)</span>
 </pre></div>
 
 </div>
@@ -13410,7 +13416,7 @@ SUVORK5CYII=
 那么你认为，这样的要求在实际使用中对用户合理吗？如果你觉得不合理，你能否想到一个方法，即使图像中并没有清晰的面部特征，也能够检测到人脸？</p>
 <p><strong>回答:</strong></p>
 <p>实际使用中，要求输入图像清晰是否合理视场景而言：如果类似门禁系统这种环境可控、干扰极少的场景，用户很容易提供清晰人脸图像；倘若是类似监控系统这种环境难以控制、干扰因素杂多的场景，要求提供含有清晰面部特征的人脸图像便不合理。</p>
-<p>以上 OpenCV 检测人脸使用的是提取 Haar 特征加 Adaboost 的方式进行检测，特征是预先人工定义的，或许难以迁移到人脸可能不清晰的场景。使用深度学习可以进行端到端的学习，避免手工定义特征，只需向算法提供标注好的不清晰人脸图像即可进行训练。一种常见的使算法能学习到图片不变表示的技巧是数据增强（Data Augmentation），即对已有数据进行变换，比如平移、旋转、剪切、变形、模糊、增加噪声等。通过这种方式，可以得到大量面部特征不清晰的人脸图像数据，这样进行训练后，可以期待算法能更好地处理面部特征不清晰的情况。</p>
+<p>以上 OpenCV 检测人脸使用的是提取 Haar-like 特征加 Adaboost 的方式进行检测，这种特征是预先人工定义的，无法得到图像变换比如旋转等的不变表示，难以迁移到人脸可能不清晰的场景。使用深度学习可以进行端到端的学习，避免手工定义特征，只需向算法提供标注好的不清晰人脸图像即可进行训练。一种常见的使算法能学习到图片不变表示的技巧是数据增强（Data Augmentation），即对已有数据进行变换，比如平移、旋转、剪切、变形、模糊、增加噪声等。通过这种方式，可以得到大量面部特征不清晰的人脸图像数据，这样进行训练后，可以期待算法能更好地处理面部特征不清晰的情况。</p>
 
 </div>
 </div>
@@ -13442,8 +13448,7 @@ SUVORK5CYII=
     <span class="n">faces</span> <span class="o">=</span> <span class="n">face_recognition</span><span class="o">.</span><span class="n">face_locations</span><span class="p">(</span><span class="n">img</span><span class="p">,</span> <span class="n">number_of_times_to_upsample</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">model</span><span class="o">=</span><span class="s2">&quot;cnn&quot;</span><span class="p">)</span>
     <span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="n">faces</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span>
 
-<span class="nb">print</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">%.1f%%</span><span class="s1"> images in human_files_short have a detected human face.&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">sum</span><span class="p">([</span><span class="n">dlib_face_detector</span><span class="p">(</span><span class="n">_</span><span class="p">)</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="n">human_files_short</span><span class="p">])</span><span class="o">*</span><span class="mi">100</span><span class="o">/</span><span class="nb">len</span><span class="p">(</span><span class="n">human_files_short</span><span class="p">)))</span>
-<span class="nb">print</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">%.1f%%</span><span class="s1"> images in dog_files_short have a detected human face.&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">sum</span><span class="p">([</span><span class="n">dlib_face_detector</span><span class="p">(</span><span class="n">_</span><span class="p">)</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="n">dog_files_short</span><span class="p">])</span><span class="o">*</span><span class="mi">100</span><span class="o">/</span><span class="nb">len</span><span class="p">(</span><span class="n">dog_files_short</span><span class="p">)))</span>
+<span class="n">show_detector_performance</span><span class="p">(</span><span class="n">dlib_face_detector</span><span class="p">,</span> <span class="s2">&quot;human face&quot;</span><span class="p">)</span>
 </pre></div>
 
 </div>
@@ -13625,8 +13630,7 @@ SUVORK5CYII=
 <div class="inner_cell">
     <div class="input_area">
 <div class=" highlight hl-ipython3"><pre><span></span><span class="c1">### TODO: 测试dog_detector函数在human_files_short和dog_files_short的表现</span>
-<span class="nb">print</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">%.1f%%</span><span class="s1"> images in human_files_short have a detected dog.&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">sum</span><span class="p">([</span><span class="n">dog_detector</span><span class="p">(</span><span class="n">_</span><span class="p">)</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="n">human_files_short</span><span class="p">])</span><span class="o">*</span><span class="mi">100</span><span class="o">/</span><span class="nb">len</span><span class="p">(</span><span class="n">human_files_short</span><span class="p">)))</span>
-<span class="nb">print</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">%.1f%%</span><span class="s1"> images in dog_files_short have a detected dog.&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">sum</span><span class="p">([</span><span class="n">dog_detector</span><span class="p">(</span><span class="n">_</span><span class="p">)</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="n">dog_files_short</span><span class="p">])</span><span class="o">*</span><span class="mi">100</span><span class="o">/</span><span class="nb">len</span><span class="p">(</span><span class="n">dog_files_short</span><span class="p">)))</span>
+<span class="n">show_detector_performance</span><span class="p">(</span><span class="n">dog_detector</span><span class="p">,</span> <span class="s2">&quot;dog&quot;</span><span class="p">)</span>
 </pre></div>
 
 </div>
@@ -13740,9 +13744,9 @@ SUVORK5CYII=
 
 
 <div class="output_subarea output_stream output_stderr output_text">
-<pre>100%|██████████| 6680/6680 [03:08&lt;00:00, 35.38it/s]
-100%|██████████| 835/835 [00:16&lt;00:00, 50.99it/s]
-100%|██████████| 836/836 [00:14&lt;00:00, 57.21it/s]
+<pre>100%|██████████| 6680/6680 [03:30&lt;00:00, 31.71it/s]
+100%|██████████| 835/835 [00:34&lt;00:00, 23.97it/s]
+100%|██████████| 836/836 [00:22&lt;00:00, 36.38it/s]
 </pre>
 </div>
 </div>
@@ -13774,7 +13778,7 @@ SUVORK5CYII=
 <li>你也可以根据上图提示的步骤搭建卷积网络，那么请说明为何如上的架构能够在该问题上取得很好的表现。</li>
 </ol>
 <p><strong>回答:</strong></p>
-<p>卷积层特别适合进行图像处理，使用局部连接，需要学习的参数数量与输入图像尺寸无关，只和卷积过滤器的设定有关。同时参数在图片各个位置之间进行共享，抓住了图像处理中平移等效的性质，高效利用数据。卷积层使用的激活函数为最常用的 ReLU，其被激活时斜率足够大，能加速训练，并且为神经网络引入非线性表达。</p>
+<p>卷积层特别适合进行图像处理，使用局部连接，需要学习的参数数量与输入图像尺寸无关，只和卷积过滤器的设定有关。同时参数在图片各个位置之间进行共享，抓住了图像处理中平移等效的性质，高效利用数据。卷积层使用的激活函数为最常用的 ReLU，其被激活时斜率足够大，能加速训练，并且为神经网络引入非线性表达。三层卷积层使得网络可以学习三种不同抽象层级的图像概念。</p>
 <p>池化紧随卷积层是常见操作，可以大大减少参数数量，同时保持主要信息，有助于避免过拟合（但也有欠拟合的风险）。池化还能引入图像表示的局部平移不变性，这也是通常图像处理中需要的性质。最大池化是最常用的池化层，特点是提取临近区域最主要的特征，更适合目标检测任务。</p>
 <p>全局平均池化层在最后输出前使用，此时使用平均池化对特征进行降维及平坦化，但不像最大池化直接丢弃部分信息。</p>
 <p>最后的全连接层使用 Softmax 激活函数用于输出多类分类的 One-Hot 表示。</p>
@@ -13923,35 +13927,35 @@ _________________________________________________________________
 <div class="output_subarea output_stream output_stdout output_text">
 <pre>Train on 6680 samples, validate on 835 samples
 Epoch 1/10
-6660/6680 [============================&gt;.] - ETA: 0s - loss: 4.8800 - acc: 0.0093Epoch 00000: val_loss improved from inf to 4.86016, saving model to saved_models/weights.best.from_scratch.hdf5
-6680/6680 [==============================] - 202s - loss: 4.8802 - acc: 0.0093 - val_loss: 4.8602 - val_acc: 0.0180
+6660/6680 [============================&gt;.] - ETA: 1s - loss: 4.8798 - acc: 0.0101Epoch 00000: val_loss improved from inf to 4.85961, saving model to saved_models/weights.best.from_scratch.hdf5
+6680/6680 [==============================] - 453s - loss: 4.8800 - acc: 0.0100 - val_loss: 4.8596 - val_acc: 0.0144
 Epoch 2/10
-6660/6680 [============================&gt;.] - ETA: 0s - loss: 4.8308 - acc: 0.0176Epoch 00001: val_loss improved from 4.86016 to 4.81541, saving model to saved_models/weights.best.from_scratch.hdf5
-6680/6680 [==============================] - 171s - loss: 4.8313 - acc: 0.0175 - val_loss: 4.8154 - val_acc: 0.0204
+6660/6680 [============================&gt;.] - ETA: 1s - loss: 4.8305 - acc: 0.0168Epoch 00001: val_loss improved from 4.85961 to 4.81420, saving model to saved_models/weights.best.from_scratch.hdf5
+6680/6680 [==============================] - 399s - loss: 4.8309 - acc: 0.0168 - val_loss: 4.8142 - val_acc: 0.0156
 Epoch 3/10
-6660/6680 [============================&gt;.] - ETA: 0s - loss: 4.7824 - acc: 0.0183Epoch 00002: val_loss improved from 4.81541 to 4.78163, saving model to saved_models/weights.best.from_scratch.hdf5
-6680/6680 [==============================] - 166s - loss: 4.7825 - acc: 0.0184 - val_loss: 4.7816 - val_acc: 0.0156
+6660/6680 [============================&gt;.] - ETA: 1s - loss: 4.7807 - acc: 0.0177Epoch 00002: val_loss improved from 4.81420 to 4.77955, saving model to saved_models/weights.best.from_scratch.hdf5
+6680/6680 [==============================] - 456s - loss: 4.7807 - acc: 0.0178 - val_loss: 4.7795 - val_acc: 0.0168
 Epoch 4/10
-6660/6680 [============================&gt;.] - ETA: 0s - loss: 4.7504 - acc: 0.0212Epoch 00003: val_loss improved from 4.78163 to 4.75759, saving model to saved_models/weights.best.from_scratch.hdf5
-6680/6680 [==============================] - 160s - loss: 4.7506 - acc: 0.0211 - val_loss: 4.7576 - val_acc: 0.0204
+6660/6680 [============================&gt;.] - ETA: 0s - loss: 4.7470 - acc: 0.0215Epoch 00003: val_loss improved from 4.77955 to 4.75430, saving model to saved_models/weights.best.from_scratch.hdf5
+6680/6680 [==============================] - 236s - loss: 4.7472 - acc: 0.0214 - val_loss: 4.7543 - val_acc: 0.0204
 Epoch 5/10
-6660/6680 [============================&gt;.] - ETA: 0s - loss: 4.7210 - acc: 0.0219Epoch 00004: val_loss improved from 4.75759 to 4.75385, saving model to saved_models/weights.best.from_scratch.hdf5
-6680/6680 [==============================] - 159s - loss: 4.7203 - acc: 0.0220 - val_loss: 4.7539 - val_acc: 0.0204
+6660/6680 [============================&gt;.] - ETA: 0s - loss: 4.7172 - acc: 0.0227Epoch 00004: val_loss improved from 4.75430 to 4.75252, saving model to saved_models/weights.best.from_scratch.hdf5
+6680/6680 [==============================] - 178s - loss: 4.7165 - acc: 0.0228 - val_loss: 4.7525 - val_acc: 0.0228
 Epoch 6/10
-6660/6680 [============================&gt;.] - ETA: 0s - loss: 4.6934 - acc: 0.0260Epoch 00005: val_loss improved from 4.75385 to 4.73023, saving model to saved_models/weights.best.from_scratch.hdf5
-6680/6680 [==============================] - 163s - loss: 4.6937 - acc: 0.0259 - val_loss: 4.7302 - val_acc: 0.0335
+6660/6680 [============================&gt;.] - ETA: 0s - loss: 4.6892 - acc: 0.0269Epoch 00005: val_loss improved from 4.75252 to 4.72560, saving model to saved_models/weights.best.from_scratch.hdf5
+6680/6680 [==============================] - 177s - loss: 4.6895 - acc: 0.0268 - val_loss: 4.7256 - val_acc: 0.0275
 Epoch 7/10
-6660/6680 [============================&gt;.] - ETA: 0s - loss: 4.6731 - acc: 0.0270Epoch 00006: val_loss improved from 4.73023 to 4.71361, saving model to saved_models/weights.best.from_scratch.hdf5
-6680/6680 [==============================] - 163s - loss: 4.6734 - acc: 0.0271 - val_loss: 4.7136 - val_acc: 0.0251
+6660/6680 [============================&gt;.] - ETA: 0s - loss: 4.6689 - acc: 0.0288Epoch 00006: val_loss improved from 4.72560 to 4.70799, saving model to saved_models/weights.best.from_scratch.hdf5
+6680/6680 [==============================] - 196s - loss: 4.6693 - acc: 0.0289 - val_loss: 4.7080 - val_acc: 0.0251
 Epoch 8/10
-6660/6680 [============================&gt;.] - ETA: 0s - loss: 4.6582 - acc: 0.0317Epoch 00007: val_loss improved from 4.71361 to 4.70772, saving model to saved_models/weights.best.from_scratch.hdf5
-6680/6680 [==============================] - 162s - loss: 4.6577 - acc: 0.0317 - val_loss: 4.7077 - val_acc: 0.0287
+6660/6680 [============================&gt;.] - ETA: 0s - loss: 4.6533 - acc: 0.0311Epoch 00007: val_loss improved from 4.70799 to 4.70221, saving model to saved_models/weights.best.from_scratch.hdf5
+6680/6680 [==============================] - 189s - loss: 4.6528 - acc: 0.0311 - val_loss: 4.7022 - val_acc: 0.0228
 Epoch 9/10
-6660/6680 [============================&gt;.] - ETA: 0s - loss: 4.6369 - acc: 0.0342Epoch 00008: val_loss improved from 4.70772 to 4.70252, saving model to saved_models/weights.best.from_scratch.hdf5
-6680/6680 [==============================] - 164s - loss: 4.6369 - acc: 0.0344 - val_loss: 4.7025 - val_acc: 0.0335
+6660/6680 [============================&gt;.] - ETA: 0s - loss: 4.6317 - acc: 0.0360Epoch 00008: val_loss improved from 4.70221 to 4.69021, saving model to saved_models/weights.best.from_scratch.hdf5
+6680/6680 [==============================] - 190s - loss: 4.6317 - acc: 0.0362 - val_loss: 4.6902 - val_acc: 0.0335
 Epoch 10/10
-6660/6680 [============================&gt;.] - ETA: 0s - loss: 4.6179 - acc: 0.0350Epoch 00009: val_loss did not improve
-6680/6680 [==============================] - 161s - loss: 4.6177 - acc: 0.0349 - val_loss: 4.7049 - val_acc: 0.0347
+6660/6680 [============================&gt;.] - ETA: 0s - loss: 4.6130 - acc: 0.0375Epoch 00009: val_loss did not improve
+6680/6680 [==============================] - 200s - loss: 4.6128 - acc: 0.0374 - val_loss: 4.7007 - val_acc: 0.0299
 </pre>
 </div>
 </div>
@@ -13964,7 +13968,7 @@ Epoch 10/10
 
 
 <div class="output_text output_subarea output_execute_result">
-<pre>&lt;keras.callbacks.History at 0x155936ef0&gt;</pre>
+<pre>&lt;keras.callbacks.History at 0x162cf36d8&gt;</pre>
 </div>
 
 </div>
@@ -14168,64 +14172,64 @@ _________________________________________________________________
 <div class="output_subarea output_stream output_stdout output_text">
 <pre>Train on 6680 samples, validate on 835 samples
 Epoch 1/20
-6500/6680 [============================&gt;.] - ETA: 0s - loss: 12.8633 - acc: 0.1125Epoch 00000: val_loss improved from inf to 11.83002, saving model to saved_models/weights.best.VGG16.hdf5
-6680/6680 [==============================] - 1s - loss: 12.8180 - acc: 0.1145 - val_loss: 11.8300 - val_acc: 0.1760
+6600/6680 [============================&gt;.] - ETA: 0s - loss: 12.8415 - acc: 0.1135Epoch 00000: val_loss improved from inf to 11.83002, saving model to saved_models/weights.best.VGG16.hdf5
+6680/6680 [==============================] - 2s - loss: 12.8180 - acc: 0.1145 - val_loss: 11.8300 - val_acc: 0.1760
 Epoch 2/20
-6580/6680 [============================&gt;.] - ETA: 0s - loss: 11.1014 - acc: 0.2401Epoch 00001: val_loss improved from 11.83002 to 11.11815, saving model to saved_models/weights.best.VGG16.hdf5
+6560/6680 [============================&gt;.] - ETA: 0s - loss: 11.0985 - acc: 0.2402Epoch 00001: val_loss improved from 11.83002 to 11.11815, saving model to saved_models/weights.best.VGG16.hdf5
 6680/6680 [==============================] - 1s - loss: 11.0869 - acc: 0.2410 - val_loss: 11.1182 - val_acc: 0.2431
 Epoch 3/20
-6440/6680 [===========================&gt;..] - ETA: 0s - loss: 10.5808 - acc: 0.2896Epoch 00002: val_loss improved from 11.11815 to 10.57690, saving model to saved_models/weights.best.VGG16.hdf5
+6660/6680 [============================&gt;.] - ETA: 0s - loss: 10.5629 - acc: 0.2910Epoch 00002: val_loss improved from 11.11815 to 10.57690, saving model to saved_models/weights.best.VGG16.hdf5
 6680/6680 [==============================] - 1s - loss: 10.5550 - acc: 0.2913 - val_loss: 10.5769 - val_acc: 0.2707
 Epoch 4/20
-6660/6680 [============================&gt;.] - ETA: 0s - loss: 10.1369 - acc: 0.3306Epoch 00003: val_loss improved from 10.57690 to 10.33685, saving model to saved_models/weights.best.VGG16.hdf5
+6640/6680 [============================&gt;.] - ETA: 0s - loss: 10.1449 - acc: 0.3303Epoch 00003: val_loss improved from 10.57690 to 10.33685, saving model to saved_models/weights.best.VGG16.hdf5
 6680/6680 [==============================] - 1s - loss: 10.1331 - acc: 0.3310 - val_loss: 10.3369 - val_acc: 0.3006
 Epoch 5/20
-6640/6680 [============================&gt;.] - ETA: 0s - loss: 9.9114 - acc: 0.3574Epoch 00004: val_loss improved from 10.33685 to 10.22233, saving model to saved_models/weights.best.VGG16.hdf5
+6500/6680 [============================&gt;.] - ETA: 0s - loss: 9.9215 - acc: 0.3571Epoch 00004: val_loss improved from 10.33685 to 10.22233, saving model to saved_models/weights.best.VGG16.hdf5
 6680/6680 [==============================] - 1s - loss: 9.9318 - acc: 0.3563 - val_loss: 10.2223 - val_acc: 0.3090
 Epoch 6/20
-6420/6680 [===========================&gt;..] - ETA: 0s - loss: 9.8544 - acc: 0.3671Epoch 00005: val_loss improved from 10.22233 to 10.11713, saving model to saved_models/weights.best.VGG16.hdf5
+6620/6680 [============================&gt;.] - ETA: 0s - loss: 9.8405 - acc: 0.3675Epoch 00005: val_loss improved from 10.22233 to 10.11713, saving model to saved_models/weights.best.VGG16.hdf5
 6680/6680 [==============================] - 1s - loss: 9.8316 - acc: 0.3680 - val_loss: 10.1171 - val_acc: 0.3257
 Epoch 7/20
-6480/6680 [============================&gt;.] - ETA: 0s - loss: 9.5663 - acc: 0.3753Epoch 00006: val_loss improved from 10.11713 to 9.76433, saving model to saved_models/weights.best.VGG16.hdf5
+6540/6680 [============================&gt;.] - ETA: 0s - loss: 9.5671 - acc: 0.3752Epoch 00006: val_loss improved from 10.11713 to 9.76433, saving model to saved_models/weights.best.VGG16.hdf5
 6680/6680 [==============================] - 1s - loss: 9.5492 - acc: 0.3763 - val_loss: 9.7643 - val_acc: 0.3293
 Epoch 8/20
-6560/6680 [============================&gt;.] - ETA: 0s - loss: 9.3096 - acc: 0.4008Epoch 00007: val_loss improved from 9.76433 to 9.64477, saving model to saved_models/weights.best.VGG16.hdf5
+6660/6680 [============================&gt;.] - ETA: 0s - loss: 9.3012 - acc: 0.4008Epoch 00007: val_loss improved from 9.76433 to 9.64477, saving model to saved_models/weights.best.VGG16.hdf5
 6680/6680 [==============================] - 1s - loss: 9.3006 - acc: 0.4006 - val_loss: 9.6448 - val_acc: 0.3473
 Epoch 9/20
-6520/6680 [============================&gt;.] - ETA: 0s - loss: 9.2336 - acc: 0.4123Epoch 00008: val_loss did not improve
+6540/6680 [============================&gt;.] - ETA: 0s - loss: 9.2353 - acc: 0.4121Epoch 00008: val_loss did not improve
 6680/6680 [==============================] - 1s - loss: 9.2428 - acc: 0.4117 - val_loss: 9.6520 - val_acc: 0.3521
 Epoch 10/20
 6600/6680 [============================&gt;.] - ETA: 0s - loss: 9.2033 - acc: 0.4195Epoch 00009: val_loss improved from 9.64477 to 9.59446, saving model to saved_models/weights.best.VGG16.hdf5
 6680/6680 [==============================] - 1s - loss: 9.2101 - acc: 0.4190 - val_loss: 9.5945 - val_acc: 0.3533
 Epoch 11/20
-6380/6680 [===========================&gt;..] - ETA: 0s - loss: 9.1548 - acc: 0.4194Epoch 00010: val_loss improved from 9.59446 to 9.53216, saving model to saved_models/weights.best.VGG16.hdf5
+6560/6680 [============================&gt;.] - ETA: 0s - loss: 9.1506 - acc: 0.4198Epoch 00010: val_loss improved from 9.59446 to 9.53216, saving model to saved_models/weights.best.VGG16.hdf5
 6680/6680 [==============================] - 1s - loss: 9.1556 - acc: 0.4195 - val_loss: 9.5322 - val_acc: 0.3605
 Epoch 12/20
-6440/6680 [===========================&gt;..] - ETA: 0s - loss: 9.1127 - acc: 0.4259Epoch 00011: val_loss improved from 9.53216 to 9.52032, saving model to saved_models/weights.best.VGG16.hdf5
+6420/6680 [===========================&gt;..] - ETA: 0s - loss: 9.1148 - acc: 0.4259Epoch 00011: val_loss improved from 9.53216 to 9.52032, saving model to saved_models/weights.best.VGG16.hdf5
 6680/6680 [==============================] - 1s - loss: 9.0949 - acc: 0.4269 - val_loss: 9.5203 - val_acc: 0.3689
 Epoch 13/20
-6520/6680 [============================&gt;.] - ETA: 0s - loss: 9.0720 - acc: 0.4316Epoch 00012: val_loss improved from 9.52032 to 9.49138, saving model to saved_models/weights.best.VGG16.hdf5
+6560/6680 [============================&gt;.] - ETA: 0s - loss: 9.0710 - acc: 0.4313Epoch 00012: val_loss improved from 9.52032 to 9.49138, saving model to saved_models/weights.best.VGG16.hdf5
 6680/6680 [==============================] - 1s - loss: 9.0678 - acc: 0.4314 - val_loss: 9.4914 - val_acc: 0.3569
 Epoch 14/20
-6460/6680 [============================&gt;.] - ETA: 0s - loss: 8.9322 - acc: 0.4375Epoch 00013: val_loss improved from 9.49138 to 9.28772, saving model to saved_models/weights.best.VGG16.hdf5
+6540/6680 [============================&gt;.] - ETA: 0s - loss: 8.9394 - acc: 0.4369Epoch 00013: val_loss improved from 9.49138 to 9.28772, saving model to saved_models/weights.best.VGG16.hdf5
 6680/6680 [==============================] - 1s - loss: 8.9264 - acc: 0.4374 - val_loss: 9.2877 - val_acc: 0.3701
 Epoch 15/20
-6540/6680 [============================&gt;.] - ETA: 0s - loss: 8.7264 - acc: 0.4405Epoch 00014: val_loss improved from 9.28772 to 9.00225, saving model to saved_models/weights.best.VGG16.hdf5
+6560/6680 [============================&gt;.] - ETA: 0s - loss: 8.7342 - acc: 0.4401Epoch 00014: val_loss improved from 9.28772 to 9.00225, saving model to saved_models/weights.best.VGG16.hdf5
 6680/6680 [==============================] - 1s - loss: 8.7398 - acc: 0.4398 - val_loss: 9.0023 - val_acc: 0.3868
 Epoch 16/20
-6420/6680 [===========================&gt;..] - ETA: 0s - loss: 8.4480 - acc: 0.4586Epoch 00015: val_loss improved from 9.00225 to 8.85608, saving model to saved_models/weights.best.VGG16.hdf5
+6480/6680 [============================&gt;.] - ETA: 0s - loss: 8.4399 - acc: 0.4591Epoch 00015: val_loss improved from 9.00225 to 8.85608, saving model to saved_models/weights.best.VGG16.hdf5
 6680/6680 [==============================] - 1s - loss: 8.4341 - acc: 0.4590 - val_loss: 8.8561 - val_acc: 0.3928
 Epoch 17/20
-6540/6680 [============================&gt;.] - ETA: 0s - loss: 8.2407 - acc: 0.4722Epoch 00016: val_loss improved from 8.85608 to 8.67151, saving model to saved_models/weights.best.VGG16.hdf5
+6460/6680 [============================&gt;.] - ETA: 0s - loss: 8.2342 - acc: 0.4728Epoch 00016: val_loss improved from 8.85608 to 8.67151, saving model to saved_models/weights.best.VGG16.hdf5
 6680/6680 [==============================] - 1s - loss: 8.2384 - acc: 0.4720 - val_loss: 8.6715 - val_acc: 0.3916
 Epoch 18/20
-6580/6680 [============================&gt;.] - ETA: 0s - loss: 8.0001 - acc: 0.4854Epoch 00017: val_loss improved from 8.67151 to 8.50352, saving model to saved_models/weights.best.VGG16.hdf5
+6520/6680 [============================&gt;.] - ETA: 0s - loss: 7.9990 - acc: 0.4856Epoch 00017: val_loss improved from 8.67151 to 8.50352, saving model to saved_models/weights.best.VGG16.hdf5
 6680/6680 [==============================] - 1s - loss: 8.0096 - acc: 0.4847 - val_loss: 8.5035 - val_acc: 0.4084
 Epoch 19/20
-6440/6680 [===========================&gt;..] - ETA: 0s - loss: 7.8474 - acc: 0.4950Epoch 00018: val_loss improved from 8.50352 to 8.34189, saving model to saved_models/weights.best.VGG16.hdf5
+6500/6680 [============================&gt;.] - ETA: 0s - loss: 7.8404 - acc: 0.4954Epoch 00018: val_loss improved from 8.50352 to 8.34189, saving model to saved_models/weights.best.VGG16.hdf5
 6680/6680 [==============================] - 1s - loss: 7.8446 - acc: 0.4951 - val_loss: 8.3419 - val_acc: 0.4084
 Epoch 20/20
-6500/6680 [============================&gt;.] - ETA: 0s - loss: 7.6683 - acc: 0.5080Epoch 00019: val_loss improved from 8.34189 to 8.24723, saving model to saved_models/weights.best.VGG16.hdf5
+6620/6680 [============================&gt;.] - ETA: 0s - loss: 7.6352 - acc: 0.5103Epoch 00019: val_loss improved from 8.34189 to 8.24723, saving model to saved_models/weights.best.VGG16.hdf5
 6680/6680 [==============================] - 1s - loss: 7.6289 - acc: 0.5108 - val_loss: 8.2472 - val_acc: 0.4156
 </pre>
 </div>
@@ -14239,7 +14243,7 @@ Epoch 20/20
 
 
 <div class="output_text output_subarea output_execute_result">
-<pre>&lt;keras.callbacks.History at 0x118f38c88&gt;</pre>
+<pre>&lt;keras.callbacks.History at 0x12672ae10&gt;</pre>
 </div>
 
 </div>
@@ -14397,8 +14401,9 @@ test_{network} = bottleneck_features['test']</code></pre>
 <p><a id='question6'></a></p>
 <h3 id="&#38382;&#39064;-6:"><strong>&#38382;&#39064; 6:</strong><a class="anchor-link" href="#&#38382;&#39064;-6:">&#182;</a></h3><p>在下方的代码块中尝试使用 Keras 搭建最终的网络架构，并回答你实现最终 CNN 架构的步骤与每一步的作用，并描述你在迁移学习过程中，使用该网络架构的原因。</p>
 <p><strong>回答:</strong></p>
-<p>前向层级等效为移除输出层后输出 bottleneck feature 的原网络数据映射层。</p>
-<p>添加全局平均池化层，将特征进行大幅度降维并平坦化，减少过拟合，同时提高训练速度。</p>
+<p>前向层级等效为移除输出层后输出 bottleneck feature 的预训练网络数据映射层。本任务中，由于数据量较小，分类类别较多，完全自行设计网络结构并训练参数将极其困难。而预训练模型的网络结构已经在长期使用过程中证明其在图像领域的优秀实用性，并且其参数已经在海量相似数据集及相似任务上进行了精细训练及调整，因此复用其网络结构及参数可利用这部分已经学习到的图像概念或者说图像特征，只需设计最后输出层级的网络结构，使用迁移后的任务数据对该部分结构参数进行训练，高效利用了数据。</p>
+<p>这里选择 Xception 而非 <a href="#步骤-4:-使用一个CNN来区分狗的品种">步骤 4</a> 中的 VGG-16 作为预训练模型。VGG-16 虽然结构简单，但参数繁多，使用固定大小的 3*3 卷积过滤器和最大池化，特征表示不够丰富。而 Inception 模块在一层中并行使用 1*1、3*3、5*5 多个卷积过滤器学习丰富的特征表示，并提前使用 1*1 卷积过滤器和最大池化对特征降维，使得网络规模足够大，能力足够强，但又维持合理的参数规模。Xception 进一步发扬 Inception 模块的原理，进一步将图像空间相关性和通道深度相关性分离，使用不同 3*3 卷积过滤器分别对单个通道的图像空间进行操作（Depthwise Convolution），学习空间相关性；再使用 1*1 卷积过滤器跨通道操作学习通道深度相关性。Xception 还利用了 ResNet 的残差连接思想，保证网络的深度。在 ImageNet 等数据集上进行分类任务测试，Xception 准确率均优于 Inception V3、ResNet-152 及 VGG-16。</p>
+<p>添加全局平均池化层，可将特征进行大幅度降维并平坦化，减少过拟合，同时提高训练速度。</p>
 <p>添加完全连接层，使用 Softmax 激活函数以输出多类分类的 One-Hot 编码。完全连接层的参数即用迁移后的数据集进行训练。</p>
 
 </div>
@@ -14485,9 +14490,9 @@ _________________________________________________________________
 <span class="n">checkpointer</span> <span class="o">=</span> <span class="n">ModelCheckpoint</span><span class="p">(</span><span class="n">filepath</span><span class="o">=</span><span class="s1">&#39;saved_models/weights.best.Xception.hdf5&#39;</span><span class="p">,</span> 
                                <span class="n">verbose</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">save_best_only</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 
-<span class="n">Xception_model</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="n">train_Xception</span><span class="p">,</span> <span class="n">train_targets</span><span class="p">,</span> 
+<span class="n">history</span> <span class="o">=</span> <span class="n">Xception_model</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="n">train_Xception</span><span class="p">,</span> <span class="n">train_targets</span><span class="p">,</span> 
           <span class="n">validation_data</span><span class="o">=</span><span class="p">(</span><span class="n">valid_Xception</span><span class="p">,</span> <span class="n">valid_targets</span><span class="p">),</span>
-          <span class="n">epochs</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">batch_size</span><span class="o">=</span><span class="mi">20</span><span class="p">,</span> <span class="n">callbacks</span><span class="o">=</span><span class="p">[</span><span class="n">checkpointer</span><span class="p">],</span> <span class="n">verbose</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+          <span class="n">epochs</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">batch_size</span><span class="o">=</span><span class="mi">32</span><span class="p">,</span> <span class="n">callbacks</span><span class="o">=</span><span class="p">[</span><span class="n">checkpointer</span><span class="p">],</span> <span class="n">verbose</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
 </pre></div>
 
 </div>
@@ -14506,48 +14511,526 @@ _________________________________________________________________
 <div class="output_subarea output_stream output_stdout output_text">
 <pre>Train on 6680 samples, validate on 835 samples
 Epoch 1/10
-6620/6680 [============================&gt;.] - ETA: 0s - loss: 1.1181 - acc: 0.7311Epoch 00000: val_loss improved from inf to 0.54559, saving model to saved_models/weights.best.Xception.hdf5
-6680/6680 [==============================] - 10s - loss: 1.1130 - acc: 0.7317 - val_loss: 0.5456 - val_acc: 0.8287
+6624/6680 [============================&gt;.] - ETA: 0s - loss: 1.2543 - acc: 0.7138Epoch 00000: val_loss improved from inf to 0.56019, saving model to saved_models/weights.best.Xception.hdf5
+6680/6680 [==============================] - 11s - loss: 1.2491 - acc: 0.7145 - val_loss: 0.5602 - val_acc: 0.8335
 Epoch 2/10
-6620/6680 [============================&gt;.] - ETA: 0s - loss: 0.3436 - acc: 0.8974Epoch 00001: val_loss improved from 0.54559 to 0.47165, saving model to saved_models/weights.best.Xception.hdf5
-6680/6680 [==============================] - 3s - loss: 0.3431 - acc: 0.8975 - val_loss: 0.4716 - val_acc: 0.8563
+6624/6680 [============================&gt;.] - ETA: 0s - loss: 0.3755 - acc: 0.8919Epoch 00001: val_loss improved from 0.56019 to 0.47108, saving model to saved_models/weights.best.Xception.hdf5
+6680/6680 [==============================] - 3s - loss: 0.3751 - acc: 0.8919 - val_loss: 0.4711 - val_acc: 0.8599
 Epoch 3/10
-6660/6680 [============================&gt;.] - ETA: 0s - loss: 0.2253 - acc: 0.9348Epoch 00002: val_loss did not improve
-6680/6680 [==============================] - 4s - loss: 0.2255 - acc: 0.9349 - val_loss: 0.4718 - val_acc: 0.8503
+6624/6680 [============================&gt;.] - ETA: 0s - loss: 0.2566 - acc: 0.9312Epoch 00002: val_loss improved from 0.47108 to 0.46774, saving model to saved_models/weights.best.Xception.hdf5
+6680/6680 [==============================] - 4s - loss: 0.2565 - acc: 0.9311 - val_loss: 0.4677 - val_acc: 0.8491
 Epoch 4/10
-6620/6680 [============================&gt;.] - ETA: 0s - loss: 0.1571 - acc: 0.9582Epoch 00003: val_loss did not improve
-6680/6680 [==============================] - 4s - loss: 0.1567 - acc: 0.9584 - val_loss: 0.4717 - val_acc: 0.8551
+6656/6680 [============================&gt;.] - ETA: 0s - loss: 0.1848 - acc: 0.9543Epoch 00003: val_loss improved from 0.46774 to 0.45846, saving model to saved_models/weights.best.Xception.hdf5
+6680/6680 [==============================] - 4s - loss: 0.1847 - acc: 0.9543 - val_loss: 0.4585 - val_acc: 0.8503
 Epoch 5/10
-6580/6680 [============================&gt;.] - ETA: 0s - loss: 0.1105 - acc: 0.9757Epoch 00004: val_loss did not improve
-6680/6680 [==============================] - 3s - loss: 0.1106 - acc: 0.9754 - val_loss: 0.4739 - val_acc: 0.8491
+6656/6680 [============================&gt;.] - ETA: 0s - loss: 0.1362 - acc: 0.9724Epoch 00004: val_loss improved from 0.45846 to 0.45752, saving model to saved_models/weights.best.Xception.hdf5
+6680/6680 [==============================] - 4s - loss: 0.1363 - acc: 0.9722 - val_loss: 0.4575 - val_acc: 0.8599
 Epoch 6/10
-6640/6680 [============================&gt;.] - ETA: 0s - loss: 0.0854 - acc: 0.9836Epoch 00005: val_loss did not improve
-6680/6680 [==============================] - 3s - loss: 0.0854 - acc: 0.9835 - val_loss: 0.4780 - val_acc: 0.8527
+6656/6680 [============================&gt;.] - ETA: 0s - loss: 0.1074 - acc: 0.9788Epoch 00005: val_loss did not improve
+6680/6680 [==============================] - 4s - loss: 0.1075 - acc: 0.9787 - val_loss: 0.4618 - val_acc: 0.8491
 Epoch 7/10
-6620/6680 [============================&gt;.] - ETA: 0s - loss: 0.0664 - acc: 0.9894Epoch 00006: val_loss improved from 0.47165 to 0.45737, saving model to saved_models/weights.best.Xception.hdf5
-6680/6680 [==============================] - 4s - loss: 0.0664 - acc: 0.9895 - val_loss: 0.4574 - val_acc: 0.8503
+6656/6680 [============================&gt;.] - ETA: 0s - loss: 0.0868 - acc: 0.9850Epoch 00006: val_loss improved from 0.45752 to 0.44374, saving model to saved_models/weights.best.Xception.hdf5
+6680/6680 [==============================] - 4s - loss: 0.0868 - acc: 0.9850 - val_loss: 0.4437 - val_acc: 0.8551
 Epoch 8/10
-6580/6680 [============================&gt;.] - ETA: 0s - loss: 0.0517 - acc: 0.9932Epoch 00007: val_loss did not improve
-6680/6680 [==============================] - 3s - loss: 0.0520 - acc: 0.9928 - val_loss: 0.4596 - val_acc: 0.8623
+6656/6680 [============================&gt;.] - ETA: 0s - loss: 0.0690 - acc: 0.9908Epoch 00007: val_loss improved from 0.44374 to 0.44239, saving model to saved_models/weights.best.Xception.hdf5
+6680/6680 [==============================] - 4s - loss: 0.0695 - acc: 0.9906 - val_loss: 0.4424 - val_acc: 0.8599
 Epoch 9/10
-6660/6680 [============================&gt;.] - ETA: 0s - loss: 0.0435 - acc: 0.9944Epoch 00008: val_loss did not improve
-6680/6680 [==============================] - 4s - loss: 0.0435 - acc: 0.9945 - val_loss: 0.4657 - val_acc: 0.8623
+6656/6680 [============================&gt;.] - ETA: 0s - loss: 0.0590 - acc: 0.9926Epoch 00008: val_loss did not improve
+6680/6680 [==============================] - 4s - loss: 0.0589 - acc: 0.9927 - val_loss: 0.4491 - val_acc: 0.8563
 Epoch 10/10
-6660/6680 [============================&gt;.] - ETA: 0s - loss: 0.0381 - acc: 0.9955Epoch 00009: val_loss did not improve
-6680/6680 [==============================] - 3s - loss: 0.0381 - acc: 0.9954 - val_loss: 0.4694 - val_acc: 0.8587
+6656/6680 [============================&gt;.] - ETA: 0s - loss: 0.0499 - acc: 0.9950Epoch 00009: val_loss did not improve
+6680/6680 [==============================] - 4s - loss: 0.0499 - acc: 0.9951 - val_loss: 0.4518 - val_acc: 0.8587
 </pre>
 </div>
 </div>
 
+</div>
+</div>
+
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">In&nbsp;[29]:</div>
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-ipython3"><pre><span></span><span class="c1"># summarize history for accuracy</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">history</span><span class="o">.</span><span class="n">history</span><span class="p">[</span><span class="s1">&#39;acc&#39;</span><span class="p">])</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">history</span><span class="o">.</span><span class="n">history</span><span class="p">[</span><span class="s1">&#39;val_acc&#39;</span><span class="p">])</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">title</span><span class="p">(</span><span class="s1">&#39;model accuracy&#39;</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">ylabel</span><span class="p">(</span><span class="s1">&#39;accuracy&#39;</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">xlabel</span><span class="p">(</span><span class="s1">&#39;epoch&#39;</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">legend</span><span class="p">([</span><span class="s1">&#39;train&#39;</span><span class="p">,</span> <span class="s1">&#39;test&#39;</span><span class="p">],</span> <span class="n">loc</span><span class="o">=</span><span class="s1">&#39;upper left&#39;</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+
+<span class="c1"># summarize history for loss</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">history</span><span class="o">.</span><span class="n">history</span><span class="p">[</span><span class="s1">&#39;loss&#39;</span><span class="p">])</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">history</span><span class="o">.</span><span class="n">history</span><span class="p">[</span><span class="s1">&#39;val_loss&#39;</span><span class="p">])</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">title</span><span class="p">(</span><span class="s1">&#39;model loss&#39;</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">ylabel</span><span class="p">(</span><span class="s1">&#39;loss&#39;</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">xlabel</span><span class="p">(</span><span class="s1">&#39;epoch&#39;</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">legend</span><span class="p">([</span><span class="s1">&#39;train&#39;</span><span class="p">,</span> <span class="s1">&#39;test&#39;</span><span class="p">],</span> <span class="n">loc</span><span class="o">=</span><span class="s1">&#39;upper left&#39;</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+</pre></div>
+
+</div>
+</div>
+</div>
+
+<div class="output_wrapper">
+<div class="output">
+
+
 <div class="output_area">
 
-<div class="prompt output_prompt">Out[28]:</div>
+<div class="prompt"></div>
 
 
 
 
-<div class="output_text output_subarea output_execute_result">
-<pre>&lt;keras.callbacks.History at 0x118b2c9e8&gt;</pre>
+<div class="output_png output_subarea ">
+<img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAYsAAAEWCAYAAACXGLsWAAAABHNCSVQICAgIfAhkiAAAAAlwSFlz
+AAALEgAACxIB0t1+/AAAIABJREFUeJzt3Xl8VPW9//HXJ3tCIBugQFgFFVe2Ii5YrbVibV17rVq9
+3Wmrtt7+bG/13lpbe2/r7/fo7bW21tZaW61brVZLW1pXVFARAXEBl0QUkrBlIQGyL5/fH+cEJiGQ
+ATLMZOb9fDzmMWed+cxAznvO95zzPebuiIiI7E1avAsQEZHEp7AQEZF+KSxERKRfCgsREemXwkJE
+RPqlsBARkX4pLEQAM/u9mf1XlMt+YGYfjXVNIolEYSEiIv1SWIgkETPLiHcNkpwUFjJohM0/3zaz
+182s0cx+a2aHmNk/zGy7mT1lZkURy59rZqvNrN7MnjWzqRHzppvZynC9PwI5vd7rE2a2Klz3RTM7
+LsoazzGzV81sm5lVmNn3e80/JXy9+nD+58LpuWb2P2a2zswazGxJOO00M6vs43v4aDj8fTN72Mzu
+NbNtwOfMbLaZvRS+x0Yz+4WZZUWsf7SZPWlmdWa22cz+w8wONbMmMyuJWG6GmVWbWWY0n12Sm8JC
+BpuLgDOBw4FPAv8A/gMYQfD/+RsAZnY48ADwb+G8hcBfzSwr3HA+BvwBKAb+FL4u4brTgbuArwAl
+wK+BBWaWHUV9jcC/AoXAOcDXzOz88HXHh/X+PKxpGrAqXO8nwEzgpLCmfwe6ovxOzgMeDt/zPqAT
++CYwHDgROAO4MqxhKPAU8E9gNDAZeNrdNwHPAhdHvO4VwIPu3h5lHZLEFBYy2Pzc3Te7exWwGHjZ
+3V919xbgUWB6uNyngb+7+5Phxu4nQC7BxngOkAnc4u7t7v4w8ErEe8wHfu3uL7t7p7vfDbSG6+2V
+uz/r7m+4e5e7v04QWB8OZ18GPOXuD4TvW+vuq8wsDfgCcI27V4Xv+aK7t0b5nbzk7o+F79ns7ivc
+fam7d7j7BwRh113DJ4BN7v4/7t7i7tvd/eVw3t3A5QBmlg5cShCoIgoLGXQ2Rww39zGeHw6PBtZ1
+z3D3LqACGBPOq/KevWiuixgeD1wbNuPUm1k9MDZcb6/M7AQzWxQ23zQAXyX4hU/4Gu/1sdpwgmaw
+vuZFo6JXDYeb2d/MbFPYNPWjKGoA+AtwlJlNJNh7a3D3ZftZkyQZhYUkqw0EG30AzMwINpRVwEZg
+TDit27iI4Qrgv929MOKR5+4PRPG+9wMLgLHuXgD8Cuh+nwrgsD7WqQFa9jCvEciL+BzpBE1YkXp3
+HX078DYwxd2HETTTRdYwqa/Cw72zhwj2Lq5AexUSQWEhyeoh4BwzOyM8QHstQVPSi8BLQAfwDTPL
+NLMLgdkR6/4G+Gq4l2BmNiQ8cD00ivcdCtS5e4uZzSZoeup2H/BRM7vYzDLMrMTMpoV7PXcBPzWz
+0WaWbmYnhsdI3gVywvfPBL4L9HfsZCiwDdhhZkcCX4uY9zdglJn9m5llm9lQMzshYv49wOeAc1FY
+SASFhSQld3+H4Bfyzwl+uX8S+KS7t7l7G3AhwUaxjuD4xp8j1l0OfBn4BbAVKA+XjcaVwE1mth34
+HkFodb/ueuDjBMFVR3Bw+/hw9reANwiOndQB/xdIc/eG8DXvJNgragR6nB3Vh28RhNR2guD7Y0QN
+2wmamD4JbALKgNMj5r9AcGB9pbtHNs1JijPd/EhEIpnZM8D97n5nvGuRxKGwEJGdzOxDwJMEx1y2
+x7seSRxqhhIRAMzsboJrMP5NQSG9ac9CRET6pT0LERHpV9J0OjZ8+HCfMGFCvMsQERlUVqxYUePu
+va/d2U3ShMWECRNYvnx5vMsQERlUzCyqU6TVDCUiIv1SWIiISL9iFhZmdpeZbTGzN/cw38zsVjMr
+t+D+BDMi5n3WzMrCx2djVaOIiEQnlscsfk/QXcI9e5h/NjAlfJxA0PnZCWZWDNwIzCLoIG2FmS1w
+9637WkB7ezuVlZW0tLTsR/mDS05ODqWlpWRm6j41IjLwYhYW7v68mU3YyyLnAfeE3UQvNbNCMxsF
+nAY86e51AGb2JDCP4L4A+6SyspKhQ4cyYcIEenYwmlzcndraWiorK5k4cWK8yxGRJBTPYxZj6NkP
+f2U4bU/Td2Nm881suZktr66u3m1+S0sLJSUlSR0UAGZGSUlJSuxBiUh8DOoD3O5+h7vPcvdZI0b0
+fZpwsgdFt1T5nCISH/G8zqKK4GY03UrDaVUETVGR0589aFWJiCQAd6e1o4sdrR00tnbQ2NpJY1vH
+zvGm1s6dwyX52Vx2wrj+X/QAxDMsFgBXm9mDBAe4G9x9o5k9DvzIzIrC5T4GXB+vIg9UfX09999/
+P1deeeU+rffxj3+c+++/n8LCwhhVJiIDqffGfUdrB01tnREb+3CD39rBjrae40EIdEYs10FjWyed
+XdH13TdjXOHgDQsze4BgD2G4mVUSnOGUCeDuvwIWEtwIphxoAj4fzqszsx8S3AQG4Kbug92DUX19
+Pb/85S93C4uOjg4yMvb89S9cuDDWpYmkpK4up7k9+JXe3NZJU/gIhjt2jjd1z28P5jW2duwc7p7X
+GE7vDoZoN+5ZGWnkZ2eQl5VOfnYGQ7IzKMjNZHRBDkOyM8Jp6QzJzmBIVkY4LRjPy9o1Pz8cz8qI
+/RGFWJ4NdWk/8x24ag/z7iK4zeSgd9111/Hee+8xbdo0MjMzycnJoaioiLfffpt3332X888/n4qK
+ClpaWrjmmmuYP38+sKv7kh07dnD22Wdzyimn8OKLLzJmzBj+8pe/kJubG+dPJnJwtXV0sXlbC1X1
+zWze1hKxke+5gd+14Q829E3hhry5PZjf0t61T++blZ5GblY6eVnpO5/zsjIoGpLFmKL0iI15Bnnh
+Brx7WvcGvzsQhmQF45npg+9wcdL0DdWfH/x1NWs2bBvQ1zxq9DBu/OTRe13m5ptv5s0332TVqlU8
+++yznHPOObz55ps7T3G96667KC4uprm5mQ996ENcdNFFlJSU9HiNsrIyHnjgAX7zm99w8cUX88gj
+j3D55ZcP6GcRiaeuLqemsZWN9S1sqG9mQ0PwvLGhmar6FjbWN1O9o5U93VEhI812bsQjN+rdv9Yj
+N/K5mekMyU4nNyuDvMzIEMgIlwmXC4cH44Y9FlImLBLF7Nmze1wLceutt/Loo48CUFFRQVlZ2W5h
+MXHiRKZNmwbAzJkz+eCDDw5avSIDYXtLOxsbgr2CnYFQ38yGhmY21LewqaGFts6ev/hzM9MZVZjD
+mMJcjjhiBKMLc4NHQS6HDMsmPyeDvMxgo34wmmFSXcqERX97AAfLkCFDdg4/++yzPPXUU7z00kvk
+5eVx2mmn9XmtRHZ29s7h9PR0mpubD0qtItGIbB4K9ga6QyEIgg0NzWxv6eixTnqaceiwHEYV5DBt
+bCGjjg1CYVRBLqMLcxhdkEthXqZOCU8gKRMW8TJ06FC2b+/7DpUNDQ0UFRWRl5fH22+/zdKlSw9y
+dSL9a2ztoGJrE+trm6jY2hxV81DxkCxGFeQwriSPOZOKGV2Yy6jCXMYU5jC6MJcR+dlkqHlnUFFY
+xFhJSQknn3wyxxxzDLm5uRxyyCE7582bN49f/epXTJ06lSOOOII5c+bEsVJJVR2dXWxsaGF9XRMV
+dU3B89Zm1tc1UVnXRG1jW4/lI5uHjjxiJKPCABgd7hWMKsglNys9Tp9GYiVp7sE9a9Ys733zo7fe
+eoupU6fGqaKDL9U+r0TH3alrbNsZABU9QqGJDfUtPU75zEgzRhfmMq44j7HFeYwtDoeLgvEiNQ8l
+FTNb4e6z+ltOexYiSaC5rZPKrU0RewfNVGzdFQyNbZ09lh+en8XY4jymjy3ivOODQBgbBsKoghw1
+EcluFBYig0Bnl7NpW8vOPYLK8Lm7yah6e2uP5XMz03fuEcyZVLJzL2FccR6lRbkMydafvuwb/Y8R
+SRAt7cHewQc1Tayra2J9bWP4HDQXtXfuaipKMxhVEITB6UeMiGgyCvYOhudnqalIBpTCQuQgamhu
+Z31tE+vqGllX28S62uB5fV0Tm7a19DirKD87g3HFeRxx6FDOPPoQxhcP2bm3MLowVxeLyUGlsBAZ
+QO7Olu2tPYIgci+hvqm9x/LD87MZX5LHiZNKGF8yhPEleYwryWN8cR7FQ7R3IIlDYSGyj9o7u6ja
+2rwrBGqb+KC2ifV1jayva+rR91B6mjG6MIfxxUM459hRQRgUh6FQnKdjBzJo6H9qjO1vF+UAt9xy
+C/PnzycvLy8GlUl/urqcl9+v442q+p1NRR/UNu52qmlOZhrjivMYXzKEU6eMCPcOhjC+OI8xRWou
+kuSgsIixPXVRHo1bbrmFyy+/XGFxkL1f08gjKyp59NUqquqDrlUK8zIZXzKE6WOLOH9a3s5wGF+S
+x8ih2WoukqSnsIixyC7KzzzzTEaOHMlDDz1Ea2srF1xwAT/4wQ9obGzk4osvprKyks7OTm644QY2
+b97Mhg0bOP300xk+fDiLFi2K90dJag3N7fzt9Q08sqKSlevrSTOYO2UE3zn7SD48ZQQFeZnxLlEk
+rlInLP5xHWx6Y2Bf89Bj4eyb97pIZBflTzzxBA8//DDLli3D3Tn33HN5/vnnqa6uZvTo0fz9738H
+gj6jCgoK+OlPf8qiRYsYPnz4wNYtQNDNxeKyGh5eWcmTazbT1tHF4Yfkc/3ZR3L+9DEcMiwn3iWK
+JIzUCYsE8MQTT/DEE08wffp0AHbs2EFZWRlz587l2muv5Tvf+Q6f+MQnmDt3bpwrTW5vb9rGIysq
+eWzVBqq3t1KUl8lls8dx0YxSjhkzTE1KIn1InbDoZw/gYHB3rr/+er7yla/sNm/lypUsXLiQ7373
+u5xxxhl873vfi0OFyat2Ryt/WbWBR1ZWsnrDNjLSjI8cOZILZ5TykSNH6n4IIv1InbCIk8guys86
+6yxuuOEGPvOZz5Cfn09VVRWZmZl0dHRQXFzM5ZdfTmFhIXfeeWePddUMtX/aOrp45u3NPLyiimff
+2UJHl3PsmAK+/8mjOHfaGIqHZMW7RJFBQ2ERY5FdlJ999tlcdtllnHjiiQDk5+dz7733Ul5ezre/
+/W3S0tLIzMzk9ttvB2D+/PnMmzeP0aNH6wB3lNyd1ysbeGRlJQte20B9UzsjhmbzhVMmctGMUo44
+dGi8SxQZlNRFeRJJtc8baVNDC4++WsUjKysp37KDrIw0PnbUIVw0s5S5k4erF1WRPVAX5ZL0mts6
+eWLNJh5eUckL5TV0OcwcX8SPLjiWc44bRUGuTncVGSgKCxlU3J1XPtjKIysqWfjGRra3djCmMJer
+Tp/MhTNKmTh8SP8vIiL7LOnDwt1T4lTIZGlO3JOKuiYeWVnJn1dWsb6uibysdM4+ZhQXzRzDnIkl
+pKUl/7+xSDwldVjk5ORQW1tLSUlJUgeGu1NbW0tOTnJdRLajtYOFr2/k4ZWVLHu/DjM4cVIJ15wx
+hXnHHKpO+EQOoqT+aystLaWyspLq6up4lxJzOTk5lJaWxruMAbG+tonbnyvn0VeraGnvYuLwIXzr
+Y4dzwYxSxhTmxrs8kZQU07Aws3nAz4B04E53v7nX/PHAXcAIoA643N0rw3mdQHf/HOvd/dx9ff/M
+zEwmTpx4AJ9ADqbyLdv55aL3+MtrG0hPMy6cPoZ/mTWWGeMKk3rPUGQwiFlYmFk6cBtwJlAJvGJm
+C9x9TcRiPwHucfe7zewjwI+BK8J5ze4+LVb1SeJYvaGB2xaV8483N5GTkc7nT5rAl0+dpL6ZRBJI
+LPcsZgPl7r4WwMweBM4DIsPiKOD/hMOLgMdiWI8kmJXrt3LbM+U8/fYWhmZncNVpk/nCKRN1ZbVI
+AoplWIwBKiLGK4ETei3zGnAhQVPVBcBQMytx91ogx8yWAx3Aze6+W5CY2XxgPsC4ceMG/hPIgHN3
+lq6t4xeLynihvJaivEyuPfNw/vWkCbouQiSBxfsA97eAX5jZ54DngSqgM5w33t2rzGwS8IyZveHu
+70Wu7O53AHdAcAX3wStb9pW78+y71dz2TDnL121leH42//nxqVx2wjid1SQyCMTyr7QKGBsxXhpO
+28ndNxDsWWBm+cBF7l4fzqsKn9ea2bPAdKBHWEji6+pynlizmV8sKuPNqm2MLsjhpvOO5uJZY8nJ
+TI93eSISpViGxSvAFDObSBASlwCXRS5gZsOBOnfvAq4nODMKMysCmty9NVzmZOD/xbBWGWAdnV38
+/Y2N3LaonHc372B8SR7/96JjuWB6qboDFxmEYhYW7t5hZlcDjxOcOnuXu682s5uA5e6+ADgN+LGZ
+OUEz1FXh6lOBX5tZF5BGcMxizW5vIgmnraOLx16t4pfPlvNBbRNTRubzs0umcc6xo9SZn8ggltS9
+zsrB09LeyZ+WV/Cr59ZSVd/MMWOGcfXpk/nYUYeqKw6RBKZeZ+WgaGzt4P6X13PH4rVUb29lxrhC
+/uuCYzjt8BG6kE4kiSgsZL80NLfzh5c+4LdL3mdrUzsnHVbCzy6ZxomTkrsfLpFUpbCQfVLX2MZd
+S97n7hc/YHtrBx85ciRXnT6ZmeOL4l2aiMSQwkKismVbC79ZvJZ7l66npaOTeUcfylWnT+aYMQXx
+Lk1EDgKFhexV5dYmfv3cWv64vIKOzi7OmzaGK087jCmH6F7WIqlEYSF9er+mkdufLefPK6swg4tm
+lPLVDx/GBN2JTiQlKSykh6r6Zv7fP9/mr69tIDM9jcvnjGf+qZMYrftIiKQ0hYXstOz9Or527wqa
+2jr58txJfHHuREYOVTfhIqKwkND9L6/ne395k3HFefzxKycyeWR+vEsSkQSisEhx7Z1d3PTXNfxh
+6To+fPgIbr10uroKF5HdKCxSWF1jG1fet4Kla+uYf+okvjPvSNLVNYeI9EFhkaLe3rSNL929nC3b
+W/npxcdz4YzSeJckIglMYZGC/vnmRv7PQ6+Rn53BQ185kWljC+NdkogkOIVFCunqcm59poxbnirj
++LGF3HHFTA4ZprOdRKR/CosU0djawbf+9Br/eHMTF84Yw48uOFZ3qhORqCksUkBFXRNfvmc5727e
+znfPmcoXT5monmFFZJ8oLJLc0rW1XHnfSto7u/jd52fz4cNHxLskERmEFBZJ7A9L1/GDBasZV5LH
+nf86i0kjdKGdiOwfhUUSauvo4gd/Xc19L6/n9CNG8LNLpzMsRxfaicj+U1gkmdodrXztvpUse7+O
+r374ML591hG60E5EDpjCIoms2bCNL9+znJodrdzy6WmcP31MvEsSkSShsEgSC9/YyLUPvUZBbiZ/
++uqJHFeqC+1EZOAoLAa5ri7nlqfLuPXpMqaPK+TXl89kpC60E5EBprAYxHa0dnDtQ6t4fPVmPjWz
+lP++4BiyM3ShnYgMPIXFILW+NrjQrmzLdm74xFF84eQJutBORGJGYTEIvfheDVfetxJ3uPsLs5k7
+RRfaiUhspcXyxc1snpm9Y2blZnZdH/PHm9nTZva6mT1rZqUR8z5rZmXh47OxrHOwcHfueekDrvjt
+MobnZ/OXq05WUIjIQRGzPQszSwduA84EKoFXzGyBu6+JWOwnwD3ufreZfQT4MXCFmRUDNwKzAAdW
+hOtujVW9ia6to4sbF7zJA8sq+OjUkfzvp6cxVBfaichBEss9i9lAubuvdfc24EHgvF7LHAU8Ew4v
+iph/FvCku9eFAfEkMC+GtSa0mh2tfObOpTywrIKrTj+MO66YpaAQkYMqlmExBqiIGK8Mp0V6Dbgw
+HL4AGGpmJVGui5nNN7PlZra8urp6wApPJG9WNXDuz5fwRlUDt146nW+fdSRpuiJbRA6ymB6ziMK3
+gA+b2avAh4EqoDPald39Dnef5e6zRoxIvrb7v72+gU/96kUcePirJ3Hu8aPjXZKIpKhYng1VBYyN
+GC8Np+3k7hsI9yzMLB+4yN3rzawKOK3Xus/GsNaE0tXl/PTJd/nFonJmjS/i9stnMmJodrzLEpEU
+Fss9i1eAKWY20cyygEuABZELmNlwM+uu4XrgrnD4ceBjZlZkZkXAx8JpSW97Szvz/7CCXywq59Oz
+xnLfl09QUIhI3MVsz8LdO8zsaoKNfDpwl7uvNrObgOXuvoBg7+HHZubA88BV4bp1ZvZDgsABuMnd
+62JVa6JYV9vIl+5eztqaRr7/yaP47Em60E5EEoO5e7xrGBCzZs3y5cuXx7uM/Va5tYlP/HwJALdd
+NoOTJw+Pc0UikgrMbIW7z+pvOV3BnSD+8cYm6pvaeeKbp3L4IUPjXY6ISA/xPhtKQs+XVTN5ZL6C
+QkQSksIiAbS0d7Ls/TpOUdOTiCQohUUCWLFuK60dXcydorAQkcSksEgAi8tqyEw35kwqiXcpIiJ9
+UlgkgMVl1UwfV8SQbJ1vICKJKaqwMLM/m9k5ERfQyQCp3dHK6g3bmKvjFSKSwKLd+P8SuAwoM7Ob
+zeyIGNaUUl54rxaAuYcnX99WIpI8ogoLd3/K3T8DzAA+AJ4ysxfN7PNmpr6yD8CSsmoKcjM5dkxB
+vEsREdmjqJuVwq7DPwd8CXgV+BlBeDwZk8pSgLuzuKyGkw4rIV3djotIAov2mMWjwGIgD/iku5/r
+7n90968D+bEsMJm9V93IxoYWTtEpsyKS4KI9/eZWd1/U14xo+hSRvi0pC27YdKruoy0iCS7aZqij
+zKyweyTsOvzKGNWUMhaX1TC+JI+xxXnxLkVEZK+iDYsvu3t990h4X+wvx6ak1NDe2cXStbXq4kNE
+BoVowyLdIm6sYGbpQFZsSkoNr66vp7GtU118iMigEO0xi38CfzSzX4fjXwmnyX5aUlZNmsGJhyks
+RCTxRRsW3yEIiK+F408Cd8akohTxfFkNx48tpCBXl6mISOKLKizcvQu4PXzIAWpoauf1ynquPn1y
+vEsREYlKVGFhZlOAHwNHATnd0919UozqSmovra2hy+EUnTIrIoNEtAe4f0ewV9EBnA7cA9wbq6KS
+3eKyGoZkpTN9XGH/C4uIJIBowyLX3Z8GzN3Xufv3gXNiV1ZyW1xWw4mHlZCZrk58RWRwiPYAd2vY
+PXmZmV0NVKFuPvbL+tom1tc18YWTJ/Sc0dUJm96A4omQo04FE0JnO1S/DRk5UDIZTP13xZU7NG+F
+7RuhpQGyh0FeMeQWQ2ZO/+vLAYk2LK4h6BfqG8APCZqiPhuropLZ4vKgi48eXZKXPwVP3gib3wQM
+Rk6F0g/B2BNg7GxtqA6GznbY8hZseBU2roINq2DzauhsDebnFof/JrODx+gZkK3fSwMiMgS2b4Tt
+m4PnHZsjxjfBjk3Q2db3a2QOCYOjaFeA5BVDXsmu4dxiyCsKn0sge+jg+Ltyh/YmaGuE1u3QtgNa
+dwTjbduD4ZwCOPr8mJbRb1iEF+B92t2/BewAPh/TipLckrIaRhfkMGn4ENj4Ojz5PVi7CArHwzk/
+hcYaqFwGqx+DlXcHK2lDNbA62qD6rSAQ+gqG7GEw6niY/WUYNQ06mqHiZah4BcoeD5axdDjk6PDf
+5ITg36dowuDY+Bws7tBUF2zkt28MNvjdjx3dw5v3HAI5BZB/KAw9FMafBEMPgaGjIP8QyC2Elm3Q
+XBe8R/NWaKoNh+ugviJ4bq4HvO/60jJ6BUmv4d3mlUBOIaT3s9ns3ri37gg27Ds37jt2bezbGsNp
+2yM2/Dv6CINwPe/a+3uOnhH/sHD3TjM7JaZVpIjOLueF8houOdywx74Grz0Y/Kc/68fwoS9CRvau
+hbu6oObdYCNVuQwqlmlDtT92BsOru8Jh8+pdG6fIYBg9PXgUTYS0XseTZvxr8NxUB1UrwvBYFvwb
+vhJecjRk5K5AL50No6dBZu7B+6wHS3cIbN8YsdHvfnTvEWwKnvcUAkNHRYTAobse+RHDA/HddXUG
+gbEzVCKfI8KlaSvUrYXKV4JpXe17fs2cgl0BkpnXKwzC5z0FVG8ZOZCVH/z4yxoKWUOCUCoc33Na
+dn64XDi+czg/GM8ZduDfVT/Mvf8PZWa3A2OAPwGN3dPd/c+xK23fzJo1y5cvXx7vMvbqtfJ1vPj7
+/2R+1uOkm8Gcr8Ip3wx2naPRVAeVy8PweBmqVob/MUmdDdXedLTBljW79hZ2C4YCGHVc8N2Mmrbn
+YNgXXZ3Be3bveVS8DFvfD+alZQbv1x3oY0+AgjEH/jljrbMdtlVB/fo+HhV72RMoDEMgYg9gt/EB
+CoFYcg/+riLDZbegCZ/bmyM29vk9h3eb1mvDn5Xf/17KQWBmK6LpPTzasPhdH5Pd3b/Qz3rzCG6S
+lA7c6e4395o/DrgbKAyXuc7dF5rZBOAt4J1w0aXu/tW9vVdCh0VHGyz/Lc1P/ZjcjgZaj7qY7I/d
+AIXjDux1OzuCDVXlsuTZUEWrOxgijzFsWdNHMEzfFQ4HGgzR2lG9a2+wYhlsWAkdLcG8YWN2BfrY
+E+DQYyHjIHez1tkODZW7B0FDRfC8rapns4elBXUXjIXCsTBsdM89gKGHBkGQ6CEgfRrQsNjPAtKB
+d4EzgUrgFeBSd18TscwdwKvufruZHQUsdPcJYVj8zd2Pifb9EjIs3GH1o/D0D2DrB7yeNY07cz/P
+rd/8XOzeM9E3VPujow22rO55jKF3MIw+PtxbCIOheFLiNMt1tMHmN3YFeuUrwYYZgmaI0dN7ntCQ
+P/LA32+PewbrYfuGvsOgcFzfj2FjIF3d0iSraMMi2iu4f0cfjXD97FnMBsrdfW34Gg8C5wFrIpZx
+oLuxrQDYEE09g8K6F+GJ7wbt2yOPpvnih7jw3g6+NP2w2L5v/gg48pzgAX1vqFY/GswbyA2VO3R1
+BBvwjtbg12tn265Hj2nhcEdrON6+a1rkstuqwqakNbvakHMKgmMMc762KxyKJiZOMPQlIwvGzAwe
+c8Id5G0bdgV65TJYeju8eGswr2hCGOjhY+TRPZsrOtpgWx97Bt3NRHsLg4lzFQayX6JthrooYjQH
+uADY4O7f2Ms6nwLmufuXwvErgBPc/eqIZUYBTwBFwBDgo+6+ItyzWE2wZ7IN+K67L+7jPeYD8wHG
+jRs3c90s10X1AAASOklEQVS6df1+lpirfhee+j688/egnfYj34XjL+Xpd2r44t3Lue9LJ3ByvO9h
+0XtDtWHVro1x0YRg4+RdPTf2nW3BRipyY99jWhtRH9SLVk5hEAw7jzEMgmDYX+0tsPG1nic07Ngc
+zMscEoS6d4bNRBvo8V1bGgwr3cuewWiFgezRgO5ZuPsjvV78AWDJftYW6VLg9+7+P2Z2IvAHMzsG
+2AiMc/daM5sJPGZmR7v7tl513QHcAUEz1ADUs/+2b4bnboYVdwdnSHzkBphzJWQFd8FbXFZDTmYa
+M8dHeTA7loaNDk6z6z7VrveGqqY8+CWbngXp2cEeSPaw4Gyt9MxgWnpmMD8jYrh7+h6nZUWsnxX8
+4u49LXLZtPT4fk8HU2YOjDsheECwp1a/flegV62AjFyY+GGFgcTF/h6KnwL0115RBYyNGC8Np0X6
+IjAPwN1fMrMcYLi7bwFaw+krzOw94HAgwQ5KEJwL/eIv4IWfBb+4P/RFOPXfg+agCEvKa5g9sYSc
+zATcAPbeUEn8mUHR+OBx3L/EuxqRqI9ZbKdnG8Mmgntc7M0rwBQzm0gQEpcAl/VaZj1wBvB7M5tK
+0MRVbWYjgLrwGo9JBOG0NppaD5rODlh1Lyz6UdBcMPVcOONGGL57t+MbG5op37KDT88a28cLiYgk
+vmiboYbu6wu7e0fYj9TjBKfF3uXuq83sJmC5uy8ArgV+Y2bfJAijz7m7m9mpwE1m1g50AV9197p9
+rSEm3OHdx+GpG4N+g0pnw8V/2Ouv8sVlNQCcoluoisggFe2exQXAM+7eEI4XAqe5+2N7W8/dFwIL
+e037XsTwGuDkPtZ7BHik9/S4q1oZdM/xwWIoPiwIiamf7PeA65KyGobnZ3PkofucuSIiCSHaYxY3
+uvuj3SPuXm9mNwJ7DYuksfUDePomePMRyBsOH/8JzPxcVAcVu8IuPk49fASWjGfxiEhKiDYs+rrs
+Nf7XqcdaUx0s/h9YdkfQH9Pcb8HJ1+xTPyxrNm6jtrGNU+J9uqyIyAGIdoO/3Mx+CtwWjl8FrIhN
+SQmgvSUIiMU/CXq2nP4ZOO0/9qu7jCXlwfGKuTpeISKDWLRh8XXgBuCPBAeinyQIjOTS1QVvPgxP
+/xAa1sPkM+HMHwQ9vO6nJWU1HHHIUEYO081ZRGTwivZsqEbguhjXEl9rn4MnbwguTjv0ODjv5zDp
+tAN6yZb2TpZ9UMcVc8YPSIkiIvESVRecZvZkeAZU93iRmT0eu7IOom0b4N5PwT3nBscoLrgD5j93
+wEEBsOz9Oto6unTKrIgMetE2Qw139/ruEXffamYH2DVmgsgeBvXr4MybYPZXBvRevkvKa8hKT+OE
+icUD9poiIvEQbVh0mdk4d18PEHb0F9++mAZKdj5c+XJM7nOwuKyGmeOLyMtK/hPHRCS5RbsV+09g
+iZk9Bxgwl7C316QQg6Co3t7KWxu38e2zjhjw1xYROdiiPcD9TzObRRAQrxJcjNccy8IGuxd0yqyI
+JJFou/v4EnANQc+xq4A5wEvAR2JX2uC2uKyGorxMjh5dEO9SREQOWLTtL9cAHwLWufvpwHSgfu+r
+pC53Z0l5NSdNHk56mrr4EJHBL9qwaHH3FgAzy3b3twE1xu9B2ZYdbN7Wylx18SEiSSLaA9yV4XUW
+jwFPmtlWIAHuYZqY1CW5iCSbaA9wXxAOft/MFgEFwD9jVtUgt6SsmknDh1BalBfvUkREBsQ+XwDg
+7s/FopBk0drRydK1dfzLrNJ4lyIiMmAG/gKDFLdyXT3N7Z3qklxEkorCYoAtKa8mPc2Yc1hJvEsR
+ERkwCosBtqSshuljCxmW0/9d9EREBguFxQCqb2rj9aoGnQUlIklHYTGAXiivxV1dfIhI8lFYDKAl
+5dUMzc7g+NLC/hcWERlEFBYDxN1ZXFbDiYeVkJGur1VEkou2agNkXW0TlVub1QQlIklJYTFAFpdV
+A3DKlBFxrkREZOApLAbI4rIaSotymVCiLj5EJPkoLAZAR2cXL71Xy9wpwzFTl+QiknxiGhZmNs/M
+3jGzcjO7ro/548xskZm9amavm9nHI+ZdH673jpmdFcs6D9RrlQ1sb+3glMlqghKR5LTPHQlGy8zS
+gduAM4FK4BUzW+DuayIW+y7wkLvfbmZHAQuBCeHwJcDRwGjgKTM73N07Y1XvgVhcVo0ZnKQuPkQk
+ScVyz2I2UO7ua929DXgQOK/XMg4MC4cLgA3h8HnAg+7e6u7vA+Xh6yWkJWU1HDemgKIhWfEuRUQk
+JmIZFmOAiojxynBapO8Dl5tZJcFexdf3YV3MbL6ZLTez5dXV1QNV9z7Z3tLOqxX16uJDRJJavA9w
+Xwr83t1LgY8DfzCzqGty9zvcfZa7zxoxIj7HC5auraOzy3W8QkSSWsyOWQBVwNiI8dJwWqQvAvMA
+3P0lM8sBhke5bkJYXFZNbmY6M8ariw8RSV6x3LN4BZhiZhPNLIvggPWCXsusB84AMLOpQA5QHS53
+iZllm9lEYAqwLIa17rclZTXMmVRMdkZ6vEsREYmZmO1ZuHuHmV0NPA6kA3e5+2ozuwlY7u4LgGuB
+35jZNwkOdn/O3R1YbWYPAWuADuCqRDwTqqq+mbU1jXxmzvh4lyIiElOxbIbC3RcSHLiOnPa9iOE1
+wMl7WPe/gf+OZX0HaknYxYf6gxKRZBfvA9yD2vNlNRwyLJspI/PjXYqISEwpLPZTV5fzYnkNp0we
+oS4+RCTpKSz20+oN29ja1K4mKBFJCQqL/fR8eLzi5MkKCxFJfgqL/bSkrIapo4YxYmh2vEsREYk5
+hcV+aG7rZMW6rWqCEpGUobDYDy+/X0tbZxenqAlKRFKEwmI/LC6rISsjjdkTi+NdiojIQaGw2A9L
+ymqYPaGYnEx18SEiqUFhsY+2bGvhnc3b1SW5iKQUhcU+WlJeA6DjFSKSUhQW+2hxWQ0lQ7I4atSw
+/hcWEUkSCot94O4sKa/h5MnDSUtTFx8ikjoUFvvgnc3bqd7equMVIpJyFBb7YElZcLxCF+OJSKpR
+WOyD58tqmDwyn1EFufEuRUTkoFJYRKmlvZNl79fqLCgRSUkKiyitXLeVlvYuNUGJSEpSWERpcXkN
+GWnGCZNK4l2KiMhBp7CI0uKyamaMLyI/O6a3LRcRSUgKiyjUNbaxesM25up4hYikKIVFFF4or8Ed
+XV8hIilLYRGFJWU1DMvJ4LjSwniXIiISFwqLfrg7i8uqOXnycNLVxYeIpCiFRT/W1jSyoaFFTVAi
+ktIUFv3Y2cXH5BFxrkREJH5iGhZmNs/M3jGzcjO7ro/5/2tmq8LHu2ZWHzGvM2LegljWuTeLy2oY
+V5zHuJK8eJUgIhJ3MbtowMzSgduAM4FK4BUzW+Dua7qXcfdvRiz/dWB6xEs0u/u0WNUXjfbOLpau
+reW8aaPjWYaISNzFcs9iNlDu7mvdvQ14EDhvL8tfCjwQw3r22aqKena0dqiLDxFJebEMizFARcR4
+ZThtN2Y2HpgIPBMxOcfMlpvZUjM7fw/rzQ+XWV5dXT1Qde+0uKyGNIMTD1NYiEhqS5QD3JcAD7t7
+Z8S08e4+C7gMuMXMDuu9krvf4e6z3H3WiBEDfwB6SVk1x5UWUpCbOeCvLSIymMQyLKqAsRHjpeG0
+vlxCryYod68Kn9cCz9LzeEbMNTS3s6qinlPVBCUiEtOweAWYYmYTzSyLIBB2O6vJzI4EioCXIqYV
+mVl2ODwcOBlY03vdWHrpvVq6HE6ZolNmRURidjaUu3eY2dXA40A6cJe7rzazm4Dl7t4dHJcAD7q7
+R6w+Ffi1mXURBNrNkWdRHQxLyqsZkpXO9HHq4kNEJKb9bbv7QmBhr2nf6zX+/T7WexE4Npa19Wdx
+WQ0nHlZCZnqiHNYREYkfbQn7UFHXxLraJt1CVUQkpLDow+Kwiw8drxARCSgs+rCkvJpRBTkcNmJI
+vEsREUkICoteOrucF8prmTtlOGbqklxEBBQWu3mjqoGG5nY1QYmIRFBY9LKkLOg25OTDSuJciYhI
+4lBY9LK4rIajRw+jJD873qWIiCQMhUWExtYOVq7fylw1QYmI9KCwiPDy+7W0d7q6JBcR6UVhEWFx
+WQ3ZGWnMHF8U71JERBKKwiLCkrIaZk8sJiczPd6liIgkFIVFaGNDM2VbdnCqjleIiOxGYRFasrOL
+Dx2vEBHpTWERWlJew/D8bI48dGi8SxERSTgKC6Cry3mhvEZdfIiI7IHCAnhr0zZqdrSpS3IRkT1Q
+WKDjFSIi/VFYEByvOPyQfA4ZlhPvUkREElLKh0VLeyfL3q9TFx8iInuR8mGxraWds44+lDOmjox3
+KSIiCSsj3gXE28ihOdx66fR4lyEiktBSfs9CRET6p7AQEZF+KSxERKRfCgsREemXwkJERPoV07Aw
+s3lm9o6ZlZvZdX3M/18zWxU+3jWz+oh5nzWzsvDx2VjWKSIiexezU2fNLB24DTgTqAReMbMF7r6m
+exl3/2bE8l8HpofDxcCNwCzAgRXhultjVa+IiOxZLPcsZgPl7r7W3duAB4Hz9rL8pcAD4fBZwJPu
+XhcGxJPAvBjWKiIiexHLi/LGABUR45XACX0taGbjgYnAM3tZd0wf680H5oejO8zsnQOodzhQcwDr
+JxN9Fz3p++hJ38cuyfBdjI9moUS5gvsS4GF379yXldz9DuCOgSjAzJa7+6yBeK3BTt9FT/o+etL3
+sUsqfRexbIaqAsZGjJeG0/pyCbuaoPZ1XRERibFYhsUrwBQzm2hmWQSBsKD3QmZ2JFAEvBQx+XHg
+Y2ZWZGZFwMfCaSIiEgcxa4Zy9w4zu5pgI58O3OXuq83sJmC5u3cHxyXAg+7uEevWmdkPCQIH4CZ3
+r4tVraEBac5KEvouetL30ZO+j11S5ruwiG20iIhIn3QFt4iI9EthISIi/Ur5sOivS5JUYmZjzWyR
+ma0xs9Vmdk28a4o3M0s3s1fN7G/xriXezKzQzB42s7fN7C0zOzHeNcWTmX0z/Dt508weMLOceNcU
+SykdFhFdkpwNHAVcamZHxbequOoArnX3o4A5wFUp/n0AXAO8Fe8iEsTPgH+6+5HA8aTw92JmY4Bv
+ALPc/RiCk3guiW9VsZXSYcG+d0mS1Nx9o7uvDIe3E2wMdrtyPlWYWSlwDnBnvGuJNzMrAE4Ffgvg
+7m3uXr/3tZJeBpBrZhlAHrAhzvXEVKqHRVTdiqQiM5tA0LHjy/GtJK5uAf4d6Ip3IQlgIlAN/C5s
+lrvTzIbEu6h4cfcq4CfAemAj0ODuT8S3qthK9bCQPphZPvAI8G/uvi3e9cSDmX0C2OLuK+JdS4LI
+AGYAt7v7dKARSNljfOHFwucRhOhoYIiZXR7fqmIr1cNC3Yr0YmaZBEFxn7v/Od71xNHJwLlm9gFB
+8+RHzOze+JYUV5VApbt372k+TBAeqeqjwPvuXu3u7cCfgZPiXFNMpXpYRNUlSaowMyNok37L3X8a
+73riyd2vd/dSd59A8P/iGXdP6l+Oe+Pum4AKMzsinHQGsGYvqyS79cAcM8sL/27OIMkP+CdKr7Nx
+sacuSeJcVjydDFwBvGFmq8Jp/+HuC+NYkySOrwP3hT+s1gKfj3M9cePuL5vZw8BKgrMIXyXJu/5Q
+dx8iItKvVG+GEhGRKCgsRESkXwoLERHpl8JCRET6pbAQEZF+KSxEEoCZnaaebSWRKSxERKRfCguR
+fWBml5vZMjNbZWa/Du93scPM/je8t8HTZjYiXHaamS01s9fN7NGwPyHMbLKZPWVmr5nZSjM7LHz5
+/Ij7RdwXXhkskhAUFiJRMrOpwKeBk919GtAJfAYYAix396OB54Abw1XuAb7j7scBb0RMvw+4zd2P
+J+hPaGM4fTrwbwT3VplEcEW9SEJI6e4+RPbRGcBM4JXwR38usIWgC/M/hsvcC/w5vP9Dobs/F06/
+G/iTmQ0Fxrj7owDu3gIQvt4yd68Mx1cBE4Alsf9YIv1TWIhEz4C73f36HhPNbui13P72odMaMdyJ
+/j4lgagZSiR6TwOfMrORAGZWbGbjCf6OPhUucxmwxN0bgK1mNjecfgXwXHgHwkozOz98jWwzyzuo
+n0JkP+iXi0iU3H2NmX0XeMLM0oB24CqCGwHNDudtITiuAfBZ4FdhGET20noF8Gszuyl8jX85iB9D
+ZL+o11mRA2RmO9w9P951iMSSmqFERKRf2rMQEZF+ac9CRET6pbAQEZF+KSxERKRfCgsREemXwkJE
+RPr1/wG1Gci8CuosoAAAAABJRU5ErkJggg==
+"
+>
+</div>
+
+</div>
+
+<div class="output_area">
+
+<div class="prompt"></div>
+
+
+
+
+<div class="output_png output_subarea ">
+<img src="data:image/png;base64,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
+bvuB4mMAAAAASUVORK5CYII=
+"
+>
 </div>
 
 </div>
@@ -14558,7 +15041,7 @@ Epoch 10/10
 </div>
 <div class="cell border-box-sizing code_cell rendered">
 <div class="input">
-<div class="prompt input_prompt">In&nbsp;[29]:</div>
+<div class="prompt input_prompt">In&nbsp;[30]:</div>
 <div class="inner_cell">
     <div class="input_area">
 <div class=" highlight hl-ipython3"><pre><span></span><span class="c1">### TODO: 加载具有最佳验证loss的模型权重</span>
@@ -14583,7 +15066,7 @@ Epoch 10/10
 </div>
 <div class="cell border-box-sizing code_cell rendered">
 <div class="input">
-<div class="prompt input_prompt">In&nbsp;[30]:</div>
+<div class="prompt input_prompt">In&nbsp;[31]:</div>
 <div class="inner_cell">
     <div class="input_area">
 <div class=" highlight hl-ipython3"><pre><span></span><span class="c1">### TODO: 在测试集上计算分类准确率</span>
@@ -14610,7 +15093,7 @@ Epoch 10/10
 
 
 <div class="output_subarea output_stream output_stdout output_text">
-<pre>Test accuracy: 85.6459%
+<pre>Test accuracy: 85.8852%
 </pre>
 </div>
 </div>
@@ -14640,7 +15123,7 @@ Epoch 10/10
 </div>
 <div class="cell border-box-sizing code_cell rendered">
 <div class="input">
-<div class="prompt input_prompt">In&nbsp;[31]:</div>
+<div class="prompt input_prompt">In&nbsp;[32]:</div>
 <div class="inner_cell">
     <div class="input_area">
 <div class=" highlight hl-ipython3"><pre><span></span><span class="c1">### TODO: 写一个函数，该函数将图像的路径作为输入</span>
@@ -14681,7 +15164,7 @@ Epoch 10/10
 </div>
 <div class="cell border-box-sizing code_cell rendered">
 <div class="input">
-<div class="prompt input_prompt">In&nbsp;[32]:</div>
+<div class="prompt input_prompt">In&nbsp;[33]:</div>
 <div class="inner_cell">
     <div class="input_area">
 <div class=" highlight hl-ipython3"><pre><span></span><span class="c1">### TODO: 设计你的算法</span>
@@ -14753,7 +15236,7 @@ Epoch 10/10
 </div>
 <div class="cell border-box-sizing code_cell rendered">
 <div class="input">
-<div class="prompt input_prompt">In&nbsp;[33]:</div>
+<div class="prompt input_prompt">In&nbsp;[34]:</div>
 <div class="inner_cell">
     <div class="input_area">
 <div class=" highlight hl-ipython3"><pre><span></span><span class="c1">## TODO: 在你的电脑上，在步骤6中，至少在6张图片上运行你的算法。</span>
@@ -32256,7 +32739,7 @@ gg==
 
 <div class="output_subarea output_stream output_stdout output_text">
 <pre>You look like a ...
-Canaan_dog
+Greyhound
 
 hello, dog!
 </pre>
